@@ -123,7 +123,7 @@
 
       select case (map_type)
       case(map_type_conserv)
-        num_wts = 3
+        num_wts = 4
       case(map_type_bilinear)
         num_wts = 1
       case(map_type_bicubic)
