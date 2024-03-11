@@ -81,6 +81,9 @@
 
       integer (SCRIP_i4) :: nthreads=2  ! Number of parallel threads
      
+      integer (SCRIP_i4), parameter ::
+     &     num_weights = 4              ! Hard-coded num of weights used in remapping
+                                        ! Must be equal to num_wts in remap_var
 !***********************************************************************
 
       contains
@@ -120,7 +123,7 @@
       real (SCRIP_r8) ::
      &     norm_factor          ! factor for normalizing wts
 
-      real (SCRIP_r8), dimension(6) :: 
+      real (SCRIP_r8), dimension(2 * num_weights) :: 
      &     weights             ! Weights array
 
       real (SCRIP_r8) ::
@@ -231,9 +234,12 @@ C$OMP END PARALLEL
          weights(1) =  pi2
          weights(2) =  pi*pi
          weights(3) =  zero
-         weights(4) =  pi2
-         weights(5) =  pi*pi
-         weights(6) =  zero
+         weights(4) =  zero
+
+         weights(num_wts+1) =  pi2
+         weights(num_wts+2) =  pi*pi
+         weights(num_wts+3) =  zero
+         weights(num_wts+4) =  zero
          
          if (grid1_npole_cell /=0) then
             grid1_area(grid1_npole_cell) = grid1_area(grid1_npole_cell) 
@@ -242,6 +248,8 @@ C$OMP END PARALLEL
      &           grid1_centroid_lat(grid1_npole_cell) + weights(2)
             grid1_centroid_lon(grid1_npole_cell) =
      &           grid1_centroid_lon(grid1_npole_cell) + weights(3)
+            grid1_wpivot_lon(grid1_npole_cell) =
+     &           grid1_wpivot_lon(grid1_npole_cell) + weights(4)
          endif
          
          if (grid2_npole_cell /=0) then
@@ -253,6 +261,9 @@ C$OMP END PARALLEL
             grid2_centroid_lon(grid2_npole_cell) =
      &           grid2_centroid_lon(grid2_npole_cell) + 
      &           weights(num_wts+3)
+            grid2_wpivot_lon(grid2_npole_cell) =
+     &           grid2_wpivot_lon(grid2_npole_cell) + 
+     &           weights(num_wts+4)
          endif
          
          if (grid1_npole_cell /= 0 .and. grid2_npole_cell /=0) then
@@ -270,9 +281,12 @@ C$OMP END PARALLEL
          weights(1) =  pi2
          weights(2) = -pi*pi
          weights(3) =  zero
-         weights(4) =  pi2
-         weights(5) = -pi*pi
-         weights(6) =  zero
+         weights(4) =  zero
+
+         weights(num_wts+1) =  pi2
+         weights(num_wts+2) = -pi*pi
+         weights(num_wts+3) =  zero
+         weights(num_wts+4) =  zero
          
          if (grid1_spole_cell /=0) then
             grid1_area(grid1_spole_cell) = grid1_area(grid1_spole_cell) 
@@ -281,6 +295,8 @@ C$OMP END PARALLEL
      &           grid1_centroid_lat(grid1_spole_cell) + weights(2)
             grid1_centroid_lon(grid1_spole_cell) =
      &           grid1_centroid_lon(grid1_spole_cell) + weights(3)
+            grid1_wpivot_lon(grid1_spole_cell) =
+     &           grid1_wpivot_lon(grid1_spole_cell) + weights(4)
          endif
          
          if (grid2_spole_cell /=0) then
@@ -292,6 +308,9 @@ C$OMP END PARALLEL
             grid2_centroid_lon(grid2_spole_cell) =
      &           grid2_centroid_lon(grid2_spole_cell) + 
      &           weights(num_wts+3)
+            grid2_wpivot_lon(grid2_spole_cell) =
+     &           grid2_wpivot_lon(grid2_spole_cell) + 
+     &           weights(num_wts+4)
          endif
 
          if (grid1_spole_cell /= 0 .and. grid2_spole_cell /=0) then
@@ -322,14 +341,20 @@ C$OMP PARALLEL
 C$OMP WORKSHARE
       where (grid1_area /= zero)
         grid1_centroid_lat = grid1_centroid_lat/grid1_area
-        grid1_centroid_lon = grid1_centroid_lon/grid1_area
+c$$$        grid1_centroid_lon = grid1_centroid_lon/grid1_area
+      end where
+      where (grid1_wpivot_lon /= zero)
+        grid1_centroid_lon = grid1_centroid_lon/grid1_wpivot_lon
       end where
 C$OMP END WORKSHARE
 
 C$OMP WORKSHARE
       where (grid2_area /= zero)
         grid2_centroid_lat = grid2_centroid_lat/grid2_area
-        grid2_centroid_lon = grid2_centroid_lon/grid2_area
+c$$$        grid2_centroid_lon = grid2_centroid_lon/grid2_area
+      end where
+      where (grid2_wpivot_lon /= zero)
+        grid2_centroid_lon = grid2_centroid_lon/grid2_wpivot_lon
       end where
 C$OMP END WORKSHARE
 C$OMP END PARALLEL
@@ -388,7 +413,7 @@ C$OMP DO SCHEDULE(DYNAMIC)
         wts_map1(2,n) = (weights(2) - weights(1)*
      &                              grid1_centroid_lat(grid1_add))*
      &                              norm_factor
-        wts_map1(3,n) = (weights(3) - weights(1)*
+        wts_map1(3,n) = (weights(3) - weights(4)*
      &                              grid1_centroid_lon(grid1_add))*
      &                              norm_factor
 
@@ -424,7 +449,7 @@ C$OMP DO SCHEDULE(DYNAMIC)
           wts_map2(2,n) = (weights(num_wts+2) - weights(num_wts+1)*
      &                                grid2_centroid_lat(grid2_add))*
      &                                norm_factor
-          wts_map2(3,n) = (weights(num_wts+3) - weights(num_wts+1)*
+          wts_map2(3,n) = (weights(num_wts+3) - weights(num_wts+4)*
      &                                grid2_centroid_lon(grid2_add))*
      &                                norm_factor
         endif
@@ -889,7 +914,7 @@ C$OMP END PARALLEL
       real (SCRIP_r8), dimension(2) :: 
      &     begseg               ! begin lat/lon for full segment
 
-      real (SCRIP_r8), dimension(6) :: 
+      real (SCRIP_r8), dimension(2 * num_weights) :: 
      &     weights,             ! local wgt array
      &     rev_weights          ! Weights for grid1 and grid2 flipped
 
@@ -1703,6 +1728,8 @@ C$OMP CRITICAL(block2)
      &                 grid1_centroid_lat(cell_add) + weights(2)
                   grid1_centroid_lon(cell_add) = 
      &                 grid1_centroid_lon(cell_add) + weights(3)
+                  grid1_wpivot_lon(cell_add) = 
+     &                 grid1_wpivot_lon(cell_add) + weights(4)
 C$OMP END CRITICAL(block2)
 
                else
@@ -1745,6 +1772,8 @@ C$OMP CRITICAL(block4)
      &                 grid2_centroid_lat(cell_add) + weights(2)
                   grid2_centroid_lon(cell_add) = 
      &                 grid2_centroid_lon(cell_add) + weights(3)
+                  grid2_wpivot_lon(cell_add) = 
+     &                 grid2_wpivot_lon(cell_add) + weights(4)
 C$OMP END CRITICAL(block4)
                endif
 
@@ -3357,7 +3386,9 @@ C$OMP END CRITICAL(block4)
 
       if ((phi2-phi1) <  pi .and. (phi2-phi1) > -pi) then
         weights(3) = dphi*(phi1*f1 + phi2*f2)
+        weights(4) = dphi*(f1 + f2)
       else
+         print *, 'NOT FULLY CHECKED.'
         if (phi1 > zero) then
           fac = pi
         else
@@ -3367,6 +3398,9 @@ C$OMP END CRITICAL(block4)
         weights(3) = half*phi1*(phi1-fac)*f1 -
      &               half*phi2*(phi2+fac)*f2 +
      &               half*fac*(phi1+phi2)*fint
+        weights(4) = half*(phi1-fac)*f1 -
+     &               half*(phi2+fac)*f2 +
+     &               fac*fint
       endif
 
       phi1 = in_phi1 - grid2_lon
@@ -3385,7 +3419,9 @@ C$OMP END CRITICAL(block4)
 
       if ((phi2-phi1) <  pi .and. (phi2-phi1) > -pi) then
         weights(num_wts+3) = dphi*(phi1*f1 + phi2*f2)
+        weights(num_wts+4) = dphi*(f1 + f2)
       else
+         print *, 'NOT FULLY CHECKED.'
         if (phi1 > zero) then
           fac = pi
         else
@@ -3395,6 +3431,9 @@ C$OMP END CRITICAL(block4)
         weights(num_wts+3) = half*phi1*(phi1-fac)*f1 -
      &                       half*phi2*(phi2+fac)*f2 +
      &                       half*fac*(phi1+phi2)*fint
+        weights(num_wts+4) = half*(phi1-fac)*f1 -
+     &                       half*(phi2+fac)*f2 +
+     &                       fac*fint
       endif
 
 !-----------------------------------------------------------------------
