@@ -117,7 +117,9 @@
      &             grid1_centroid_lat,! Centroid of grid1 cell
      &             grid1_centroid_lon,!
      &             grid2_centroid_lat,! Centroid of grid2 cell
-     &             grid2_centroid_lon !
+     &             grid2_centroid_lon,!
+     &             grid1_wpivot_lon,  ! Weights for pivot (weight 3 correction)
+     &             grid2_wpivot_lon   !
 
       real (SCRIP_r8), dimension(:), allocatable, target, save ::
      &             grid1_work,
@@ -394,6 +396,8 @@
      &          grid1_centroid_lon(grid1_size),
      &          grid2_centroid_lat(grid2_size),
      &          grid2_centroid_lon(grid2_size))
+      allocate( grid1_wpivot_lon(grid1_size),
+     &          grid2_wpivot_lon(grid2_size))
 
       allocate( grid1_work      (grid1_size),
      &          grid2_work      (grid2_size))
@@ -468,6 +472,7 @@
       grid1_frac = zero
       grid1_centroid_lat = zero
       grid1_centroid_lon = zero
+      grid1_wpivot_lon = zero
 
 !-----------------------------------------------------------------------
 !
@@ -607,6 +612,7 @@
       grid2_frac = zero
       grid2_centroid_lat = zero
       grid2_centroid_lon = zero
+      grid2_wpivot_lon = zero
 
 !-----------------------------------------------------------------------
 !
