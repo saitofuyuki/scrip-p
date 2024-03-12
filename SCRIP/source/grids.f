@@ -119,6 +119,9 @@
      &             grid2_centroid_lat,! Centroid of grid2 cell
      &             grid2_centroid_lon !
 
+      real (SCRIP_r8), dimension(:), allocatable, target, save ::
+     &             grid1_work,
+     &             grid2_work
 
       real (SCRIP_r8), dimension(:,:), allocatable, target, save ::
      &             grid1_corner_lat,  ! lat/lon coordinates for
@@ -391,6 +394,9 @@
      &          grid1_centroid_lon(grid1_size),
      &          grid2_centroid_lat(grid2_size),
      &          grid2_centroid_lon(grid2_size))
+
+      allocate( grid1_work      (grid1_size),
+     &          grid2_work      (grid2_size))
 
       allocate(imask(grid1_size))
 
