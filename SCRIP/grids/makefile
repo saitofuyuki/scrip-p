@@ -22,10 +22,13 @@ OBJ  = \
 	constants.o \
         grids.o
 
-all: CreateLatLon OverlayGMV convertgauss convertPOPT
+all: CreateLatLon CreateLatLonX OverlayGMV convertgauss convertPOPT
 
 CreateLatLon: $(OBJ) CreateLatLon.o
 	$(COMP) $(FLAGS) $(OBJ) CreateLatLon.o $(LIB) -o $(EXEDIR)/CreateLatLon
+
+CreateLatLonX: $(OBJ) CreateLatLonX.o
+	$(COMP) $(FLAGS) $(OBJ) CreateLatLonX.o $(LIB) -o $(EXEDIR)/CreateLatLonX
 
 OverlayGMV: $(OBJ) OverlayGMV.o
 	$(COMP) $(FLAGS) $(OBJ) OverlayGMV.o $(LIB) -o $(EXEDIR)/OverlayGMV
@@ -57,6 +60,9 @@ grids.o: $(SRCDIR)/grids.f SCRIP_NetcdfMod.o SCRIP_KindsMod.o SCRIP_ErrorMod.o $
 CreateLatLon.o: CreateLatLon.F90 SCRIP_KindsMod.o SCRIP_ErrorMod.o SCRIP_NetcdfMod.o $(INCL)
 	$(COMP) $(FLAGS) -c CreateLatLon.F90
 
+CreateLatLonX.o: CreateLatLonX.F90 SCRIP_KindsMod.o SCRIP_ErrorMod.o SCRIP_NetcdfMod.o $(INCL)
+	$(COMP) $(FLAGS) -c CreateLatLonX.F90 -o $@
+
 OverlayGMV.o: OverlayGMV.F90 SCRIP_KindsMod.o SCRIP_ErrorMod.o SCRIP_NetcdfMod.o grids.o constants.o $(INCL)
 	$(COMP) $(FLAGS) -c OverlayGMV.F90
 
@@ -67,5 +73,4 @@ convertPOPT.o: convertPOPT.f SCRIP_KindsMod.o SCRIP_ErrorMod.o SCRIP_NetcdfMod.o
 	$(COMP) $(FLAGS) -c convertPOPT.f
 
 clean: 
-	/bin/rm CreateLatLon OverlayGMV convertgauss convertPOPT *.o *.mod
-
+	/bin/rm CreateLatLon CreateLatLonX OverlayGMV convertgauss convertPOPT *.o *.mod
