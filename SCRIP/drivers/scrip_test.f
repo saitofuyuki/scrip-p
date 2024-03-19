@@ -639,6 +639,7 @@
           grad1_lon   = (pi/length)*sin(pi*grid1_tmp)*
      &                  sin(grid1_center_lon)/
      &                  sqrt(one-grid1_array**2)
+     &                  *cos(grid1_center_lat)
           grid1_array = two + cos(pi*grid1_tmp)
         elsewhere
           grid1_array = one
@@ -667,7 +668,7 @@
      &                    cos(two*grid1_center_lon)
           grad1_lat   = -sin(two*grid1_center_lat)*
      &                   cos(two*grid1_center_lon)
-          grad1_lon   = -two*cos(grid1_center_lat)*
+          grad1_lon   = -two*cos(grid1_center_lat)**2*
      &                   sin(two*grid1_center_lon)
         elsewhere
           grid1_array = zero
@@ -692,6 +693,7 @@
      &                      cos(16.*grid1_center_lon)
           grad1_lon   = -32.*sin(two*grid1_center_lat)**15*
      &                       sin(grid1_center_lat)*
+     &                       cos(grid1_center_lat)*
      &                   sin(16.*grid1_center_lon)
         elsewhere
           grid1_array = zero
