@@ -3338,8 +3338,8 @@ C$OMP END CRITICAL(block4)
 !
 !-----------------------------------------------------------------------
 
-      f1 = half*(costh1*sinth1 + theta1)
-      f2 = half*(costh2*sinth2 + theta2)
+      f1 = sinth1
+      f2 = sinth2
 
       phi1 = in_phi1 - grid1_lon
       if (phi1 >  pi) then
