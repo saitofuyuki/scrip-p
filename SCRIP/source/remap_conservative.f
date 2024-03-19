@@ -391,6 +391,8 @@ C$OMP DO SCHEDULE(DYNAMIC)
         wts_map1(3,n) = (weights(3) - weights(1)*
      &                              grid1_centroid_lon(grid1_add))*
      &                              norm_factor
+        wts_map1(3,n) = wts_map1(3,n)
+     &       * cos(grid1_centroid_lat(grid1_add))
 
         if (num_maps > 1) then
           select case(norm_opt)
@@ -427,6 +429,8 @@ C$OMP DO SCHEDULE(DYNAMIC)
           wts_map2(3,n) = (weights(num_wts+3) - weights(num_wts+1)*
      &                                grid2_centroid_lon(grid2_add))*
      &                                norm_factor
+          wts_map2(3,n) = wts_map2(3,n)
+     &         * cos(grid2_centroid_lat(grid2_add))
         endif
 
       end do
@@ -3338,8 +3342,8 @@ C$OMP END CRITICAL(block4)
 !
 !-----------------------------------------------------------------------
 
-      f1 = half*(costh1*sinth1 + theta1)
-      f2 = half*(costh2*sinth2 + theta2)
+      f1 = sinth1
+      f2 = sinth2
 
       phi1 = in_phi1 - grid1_lon
       if (phi1 >  pi) then
