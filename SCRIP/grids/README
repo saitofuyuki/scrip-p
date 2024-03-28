@@ -7,6 +7,8 @@
 
       CreateLatLon.F90 - creates a simple lat/lon grid for SCRIP
 
+      CreateLatLonX.F90 - CreateLatLon variation, with some command-line arguments.
+
       convertPOPT.f  - converts input grid files for the POP 
                        ocean model to SCRIP netCDF format
 
@@ -17,3 +19,24 @@
       convert_old.f  - converts old grid files from a previous
                        version of the SCRIP routines
 
+
+-----------------------------------------------------------------------------------
+usage of CreateLatLonX
+
+% CreateLatLonX FILENAME LON-SIZE LAT-SIZE [OFFSET-LONGITUDE] [SHIFT-MID-LONGITUDE]
+
+The final optional argument, SHIFT-MID-LONGITUDE, is not for practical application
+but for tests.
+
+[caution]
+Using SHIFT-MID-LONGITUDE except for zero may cause trouble at remapping.
+This value is meaned to be used for sensitivity tests, to check the effect of
+error in the reference coordinate, not for general use.  Remapping file contains
+the center longitude that is also shifted, thus may influence the other programs
+such as scrip_test.  So it is recommened to replace src_grid_center_lon and
+dst_grid_center_lon variables by ncks after execution of scrip,  as follows:
+
+% ncks -A -v src_grid_center_lon REFERRENCE.nc REMAP.nc
+
+where REFERRENCE.nc contains the expected central longitude, and REMAP.nc
+is the remapping table file to contain shifted central longitudes.
