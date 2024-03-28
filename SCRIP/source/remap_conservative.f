@@ -35,6 +35,25 @@
 !     the version available from Los Alamos National Laboratory.
 !
 !***********************************************************************
+!
+!     This version is a derivative work from the official version,
+!     which include /pivot/ concept to fix the fundamental error
+!     in the computation of weights(3).
+!
+!     The modification is maintained by SAITO Fuyuki, and the credit
+!     of the modification part is as follows
+!
+!     Copyright (C) 2024
+!          Japan Agency for Marine-Earth Science and Technology
+!
+!     Licensed under the Apache License, Version 2.0
+!           (https://www.apache.org/licenses/LICENSE-2.0)
+!
+!     All the other part follows the official as above.
+!
+!     See git repository to check the modification.
+!
+!***********************************************************************
 
 !
 !     
