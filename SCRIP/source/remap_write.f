@@ -32,6 +32,25 @@
 !     the version available from Los Alamos National Laboratory.
 !
 !***********************************************************************
+!
+!     This version is a derivative work from the official version,
+!     which include /pivot/ concept to fix the fundamental error
+!     in the computation of weights(3).
+!
+!     The modification is maintained by SAITO Fuyuki, and the credit
+!     of the modification part is as follows
+!
+!     Copyright (C) 2024
+!          Japan Agency for Marine-Earth Science and Technology
+!
+!     Licensed under the Apache License, Version 2.0
+!           (https://www.apache.org/licenses/LICENSE-2.0)
+!
+!     All the other part follows the official as above.
+!
+!     See git repository to check the modification.
+!
+!***********************************************************************
 
       module remap_write
 
@@ -103,6 +122,12 @@
      &,  nc_srcadd_id         ! id for map source address
      &,  nc_dstadd_id         ! id for map destination address
      &,  nc_rmpmatrix_id      ! id for remapping matrix
+
+      integer (SCRIP_i4), private ::
+     &     nc_srccentroidlat_id,
+     &     nc_dstcentroidlat_id,
+     &     nc_srccentroidlon_id,
+     &     nc_dstcentroidlon_id
 
       integer (SCRIP_i4), dimension(2), private ::
      &   nc_dims2_id  ! netCDF ids for 2d array dims
@@ -553,6 +578,38 @@
      &         'error defining destination grid corner lons')) return
 
       !***
+      !*** define grid centroid latitude array
+      !***
+
+      ncstat = nf90_def_var(nc_file_id, 'src_grid_centroid_lat',
+     &                      NF90_DOUBLE, nc_srcgrdsize_id,
+     &                      nc_srccentroidlat_id)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error defining source grid centroid lat')) return
+
+      ncstat = nf90_def_var(nc_file_id, 'dst_grid_centroid_lat',
+     &                      NF90_DOUBLE, nc_dstgrdsize_id,
+     &                      nc_dstcentroidlat_id)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error defining destination grid centroid lat')) return
+
+      !***
+      !*** define grid centroid longitude array
+      !***
+
+      ncstat = nf90_def_var(nc_file_id, 'src_grid_centroid_lon',
+     &                      NF90_DOUBLE, nc_srcgrdsize_id,
+     &                      nc_srccentroidlon_id)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error defining source grid centroid lon')) return
+
+      ncstat = nf90_def_var(nc_file_id, 'dst_grid_centroid_lon',
+     &                      NF90_DOUBLE, nc_dstgrdsize_id,
+     &                      nc_dstcentroidlon_id)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error defining destination grid centroid lon')) return
+
+      !***
       !*** define units for all coordinate arrays
       !***
 
@@ -600,6 +657,26 @@
      &         'error writing destination grid units')) return
 
       ncstat = nf90_put_att(nc_file_id, nc_dstgrdcrnrlon_id, 
+     &                      'units', grid2_ctmp)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error writing destination grid units')) return
+
+      ncstat = nf90_put_att(nc_file_id, nc_srccentroidlat_id,
+     &                      'units', grid1_ctmp)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error writing source grid units')) return
+
+      ncstat = nf90_put_att(nc_file_id, nc_dstcentroidlat_id,
+     &                      'units', grid2_ctmp)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error writing destination grid units')) return
+
+      ncstat = nf90_put_att(nc_file_id, nc_srccentroidlon_id,
+     &                      'units', grid1_ctmp)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error writing source grid units')) return
+
+      ncstat = nf90_put_att(nc_file_id, nc_dstcentroidlon_id,
      &                      'units', grid2_ctmp)
       if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
      &         'error writing destination grid units')) return
@@ -763,6 +840,8 @@
         grid1_center_lon = grid1_center_lon/deg2rad
         grid1_corner_lat = grid1_corner_lat/deg2rad
         grid1_corner_lon = grid1_corner_lon/deg2rad
+        grid1_centroid_lat = grid1_centroid_lat/deg2rad
+        grid1_centroid_lon = grid1_centroid_lon/deg2rad
       endif
 
       if (grid2_units(1:7) == 'degrees' .and. direction == 1) then
@@ -770,6 +849,8 @@
         grid2_center_lon = grid2_center_lon/deg2rad
         grid2_corner_lat = grid2_corner_lat/deg2rad
         grid2_corner_lon = grid2_corner_lon/deg2rad
+        grid2_centroid_lat = grid2_centroid_lat/deg2rad
+        grid2_centroid_lon = grid2_centroid_lon/deg2rad
       endif
 
 !-----------------------------------------------------------------------
@@ -859,6 +940,38 @@
       ncstat = nf90_put_var(nc_file_id, itmp4, grid2_corner_lon)
       if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
      &         'error writing destination grid corner lons')) return
+
+      if (direction == 1) then
+        itmp1 = nc_srccentroidlat_id
+        itmp2 = nc_srccentroidlon_id
+      else
+        itmp1 = nc_dstcentroidlat_id
+        itmp2 = nc_dstcentroidlon_id
+      endif
+
+      ncstat = nf90_put_var(nc_file_id, itmp1, grid1_centroid_lat)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error writing source grid centroid lats')) return
+
+      ncstat = nf90_put_var(nc_file_id, itmp2, grid1_centroid_lon)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error writing source grid centroid lons')) return
+
+      if (direction == 1) then
+        itmp1 = nc_dstcentroidlat_id
+        itmp2 = nc_dstcentroidlon_id
+      else
+        itmp1 = nc_srccentroidlat_id
+        itmp2 = nc_srccentroidlon_id
+      endif
+
+      ncstat = nf90_put_var(nc_file_id, itmp1, grid2_centroid_lat)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error writing destination grid centroid lats')) return
+
+      ncstat = nf90_put_var(nc_file_id, itmp2, grid2_centroid_lon)
+      if (SCRIP_NetcdfErrorCheck(ncstat, errorCode, rtnName,
+     &         'error writing destination grid centroid lons')) return
 
       if (direction == 1) then
         itmp1 = nc_srcgrdarea_id

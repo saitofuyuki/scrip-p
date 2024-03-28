@@ -33,6 +33,25 @@
 !     the version available from Los Alamos National Laboratory.
 !
 !***********************************************************************
+!
+!     This version is a derivative work from the official version,
+!     which include /pivot/ concept to fix the fundamental error
+!     in the computation of weights(3).
+!
+!     The modification is maintained by SAITO Fuyuki, and the credit
+!     of the modification part is as follows
+!
+!     Copyright (C) 2024
+!          Japan Agency for Marine-Earth Science and Technology
+!
+!     Licensed under the Apache License, Version 2.0
+!           (https://www.apache.org/licenses/LICENSE-2.0)
+!
+!     All the other part follows the official as above.
+!
+!     See git repository to check the modification.
+!
+!***********************************************************************
 
       module grids
 
@@ -100,6 +119,9 @@
      &             grid2_centroid_lat,! Centroid of grid2 cell
      &             grid2_centroid_lon !
 
+      real (SCRIP_r8), dimension(:), allocatable, target, save ::
+     &             grid1_work,
+     &             grid2_work
 
       real (SCRIP_r8), dimension(:,:), allocatable, target, save ::
      &             grid1_corner_lat,  ! lat/lon coordinates for
@@ -372,6 +394,9 @@
      &          grid1_centroid_lon(grid1_size),
      &          grid2_centroid_lat(grid2_size),
      &          grid2_centroid_lon(grid2_size))
+
+      allocate( grid1_work      (grid1_size),
+     &          grid2_work      (grid2_size))
 
       allocate(imask(grid1_size))
 

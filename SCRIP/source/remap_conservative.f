@@ -35,6 +35,25 @@
 !     the version available from Los Alamos National Laboratory.
 !
 !***********************************************************************
+!
+!     This version is a derivative work from the official version,
+!     which include /pivot/ concept to fix the fundamental error
+!     in the computation of weights(3).
+!
+!     The modification is maintained by SAITO Fuyuki, and the credit
+!     of the modification part is as follows
+!
+!     Copyright (C) 2024
+!          Japan Agency for Marine-Earth Science and Technology
+!
+!     Licensed under the Apache License, Version 2.0
+!           (https://www.apache.org/licenses/LICENSE-2.0)
+!
+!     All the other part follows the official as above.
+!
+!     See git repository to check the modification.
+!
+!***********************************************************************
 
 !
 !     
@@ -637,8 +656,10 @@ C$OMP END PARALLEL
       !*** avoid allocation of a new variable
       !***
 
-      grid1_centroid_lat = zero
-      grid2_centroid_lat = zero
+      !*** Above misnomer is fixed with replacing by gridN_work.
+
+      grid1_work = zero
+      grid2_work = zero
 
 C$OMP PARALLEL DEFAULT(SHARED) NUM_THREADS(nthreads)
 C$OMP&   PRIVATE(n,grid1_add,grid2_add,nwgt,weights)
@@ -663,8 +684,8 @@ C$OMP DO SCHEDULE(DYNAMIC)
           print *,'Map 1 weight > 1 ',grid1_add,grid2_add,wts_map1(1,n)
         endif
 C$OMP   CRITICAL
-        grid2_centroid_lat(grid2_add) = 
-     &  grid2_centroid_lat(grid2_add) + wts_map1(1,n)
+        grid2_work(grid2_add) = 
+     &  grid2_work(grid2_add) + wts_map1(1,n)
 C$OMP   END CRITICAL
 
         if (num_maps > 1) then
@@ -677,8 +698,8 @@ C$OMP   END CRITICAL
      &                                  wts_map2(1,n)
           endif
 C$OMP     CRITICAL
-          grid1_centroid_lat(grid1_add) = 
-     &    grid1_centroid_lat(grid1_add) + wts_map2(1,n)
+          grid1_work(grid1_add) = 
+     &    grid1_work(grid1_add) + wts_map2(1,n)
 C$OMP     END CRITICAL
         endif
       end do
@@ -691,7 +712,7 @@ C$OMP END PARALLEL
       !*** If grid1 has masks, links between some cells of grid1 and
       !*** grid2 do not exist even though they overlap. In such a case,
       !*** the following code will generate errors even though nothing
-      !*** is wrong (grid1_centroid_lat or grid2_centroid_lat are never
+      !*** is wrong (grid1_work or grid2_work are never
       !*** updated in the above loop)
       !*** 
 
@@ -708,9 +729,9 @@ C$OMP END PARALLEL
             norm_factor = grid2_area(n)
           endif
         end select
-        if (abs(grid2_centroid_lat(n)-norm_factor) > .01) then
+        if (abs(grid2_work(n)-norm_factor) > .01) then
           print *,'Error: sum of wts for map1 ',n,
-     &            grid2_centroid_lat(n),norm_factor
+     &            grid2_work(n),norm_factor
         endif
       end do
 
@@ -729,9 +750,9 @@ C$OMP END PARALLEL
               norm_factor = grid1_area(n)
             endif
           end select
-          if (abs(grid1_centroid_lat(n)-norm_factor) > .01) then
+          if (abs(grid1_work(n)-norm_factor) > .01) then
             print *,'Error: sum of wts for map2 ',n,
-     &              grid1_centroid_lat(n),norm_factor
+     &              grid1_work(n),norm_factor
           endif
         end do
       endif
